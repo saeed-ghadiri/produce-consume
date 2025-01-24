@@ -25,7 +25,7 @@ public class Main {
 			// Shutdown after execution
 			executor.shutdown();
 			try {
-				if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+				if (!executor.awaitTermination(6, TimeUnit.SECONDS)) {
 					System.err.println("Forcing shutdown...");
 					executor.shutdownNow();
 				}
