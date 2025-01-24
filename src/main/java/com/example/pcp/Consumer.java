@@ -1,14 +1,14 @@
 package com.example.pcp;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Consumer  implements Runnable  {
 
     private final BlockingQueue<Integer> queue;
     private final int id;
-    private  int maxItems = 0;
-    private static final Object lock = new Object();
-    private static final int MAX_ITEMS = 100;
+    private final int maxItems;
+    private static final AtomicInteger consumedCount = new AtomicInteger(0);
 
     public Consumer(BlockingQueue<Integer> queue, int id,  int maxItems) {
         this.queue = queue;
@@ -20,15 +20,18 @@ public class Consumer  implements Runnable  {
     public void run() {
         try {
             while (true) {
-                Integer number = queue.take();
-                synchronized (lock) {
-                    maxItems++;
-                    System.out.println("Consumer " + id + " consumed: " + number);
-                    if (maxItems >= MAX_ITEMS) break;
+                if (consumedCount.get() >= maxItems) break;
+                int number = queue.take(); // blocks if the queue is empty
+                int updatedCount = consumedCount.incrementAndGet();
+                System.out.println("Consumer " + id + " consumed: " + number + " (Total consumed count: " + updatedCount + ")");
+                if (updatedCount == maxItems) {
+                    System.out.println("Consumer is stopped");
+                    break;
                 }
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            System.err.println("Consumer " + id + " interrupted.");
         }
     }
 }
