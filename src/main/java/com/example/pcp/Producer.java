@@ -9,7 +9,7 @@ public class Producer implements Runnable {
     private final BlockingQueue<Integer> queue; // has: built-in synchronization, thread safety
     private final int id;
     private final int maxItems;
-    private static final AtomicInteger count = new AtomicInteger(0); //thread-safe without explicit locks
+    private static final AtomicInteger producedCount  = new AtomicInteger(0); //thread-safe without explicit locks
 
     public Producer(BlockingQueue<Integer> queue, int id, int maxItems) {
         this.queue = queue;
@@ -21,14 +21,13 @@ public class Producer implements Runnable {
     public void run() {
         try {
             while (true) {
-                if (count.get() >= maxItems) {
-                    break; // Stop producing when max limit is reached
-                }
+                if (producedCount.get() >= maxItems) break;
                 int number = ThreadLocalRandom.current().nextInt(1, 101); //thread-safe random number generator
                 queue.put(number);
-                int updatedCount = count.incrementAndGet();
-                System.out.println("Producer " + id + " produced: " + number + " (Total: " + updatedCount + ")");
-                if (updatedCount >= maxItems) {
+                int updatedCount = producedCount.incrementAndGet();
+                System.out.println("Producer " + id + " produced: " + number + " (Total produced count: " + updatedCount + ")");
+                if (updatedCount == maxItems) {
+                    System.out.println("Producer is stopped");
                     break;
                 }
             }
